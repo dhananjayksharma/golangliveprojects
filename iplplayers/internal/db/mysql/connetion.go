@@ -3,13 +3,18 @@ package mysql
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 func InitDB() *gorm.DB {
-	dsn := "root:root#123PD@tcp(localhost:3360)/ipldbs?charset=utf8mb4&parseTime=True&loc=Local"
+	MS_USER := os.Getenv("MS_USER_ENV")
+	MS_PASS := os.Getenv("MS_PASS_ENV")
+	MS_HOST := os.Getenv("MS_HOST_ENV")
+	MS_PORT := os.Getenv("MS_PORT_ENV")
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/ipldbs?charset=utf8mb4&parseTime=True&loc=Local", MS_USER, MS_PASS, MS_HOST, MS_PORT)
 	var err error
 	DB, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {

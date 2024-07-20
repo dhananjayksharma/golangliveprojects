@@ -4,13 +4,11 @@ import (
 	"context"
 	"errors"
 	"golangliveprojects/iplplayers/pkg/v1/responses"
-
-	"gorm.io/gorm"
 )
 
-func ListQuery(ctx context.Context, playerResponse *[]responses.PlayerResponse, db *gorm.DB) error {
+func (ms *persistentSQLDBStore) PlayerListQuery(ctx context.Context, playerResponse *[]responses.PlayerResponse) error {
 
-	result := db.WithContext(ctx).Model(&responses.PlayerResponse{}).Select("id, player_code, player_name, player_dob, player_country, player_category, status, created_dt").Scan(&playerResponse)
+	result := ms.db.WithContext(ctx).Model(&responses.PlayerResponse{}).Select("id, player_code, player_name, player_dob, player_country, player_category, status, created_dt").Scan(&playerResponse)
 	var err error
 	if result.RowsAffected == 0 {
 		err = errors.New("error record not found")
@@ -19,9 +17,9 @@ func ListQuery(ctx context.Context, playerResponse *[]responses.PlayerResponse, 
 
 	return nil
 }
-func ListQueryMatches(ctx context.Context, playerResponse *[]responses.PlayerResponse, db *gorm.DB) error {
+func (ms *persistentSQLDBStore) PlayerListQueryMatches(ctx context.Context, playerResponse *[]responses.PlayerResponse) error {
 
-	result := db.WithContext(ctx).Model(&responses.PlayerResponse{}).Select("id, player_code, player_name, player_dob, player_country, player_category, status, created_dt").Scan(&playerResponse)
+	result := ms.db.WithContext(ctx).Model(&responses.PlayerResponse{}).Select("id, player_code, player_name, player_dob, player_country, player_category, status, created_dt").Scan(&playerResponse)
 	var err error
 	if result.RowsAffected == 0 {
 		err = errors.New("error record not found")
@@ -30,9 +28,9 @@ func ListQueryMatches(ctx context.Context, playerResponse *[]responses.PlayerRes
 
 	return nil
 }
-func ListQueryPlayerDetails(ctx context.Context, playerResponse *[]responses.PlayerResponse, db *gorm.DB) error {
+func (ms *persistentSQLDBStore) PlayerListQueryPlayerDetails(ctx context.Context, playerResponse *[]responses.PlayerResponse, playerCode string) error {
 
-	result := db.WithContext(ctx).Model(&responses.PlayerResponse{}).Select("id, player_code, player_name, player_dob, player_country, player_category, status, created_dt").Scan(&playerResponse)
+	result := ms.db.WithContext(ctx).Debug().Model(&responses.PlayerResponse{}).Select("id, player_code, player_name, player_dob, player_country, player_category, status, created_dt").Where("player_code=?", playerCode).Scan(&playerResponse)
 	var err error
 	if result.RowsAffected == 0 {
 		err = errors.New("error record not found")

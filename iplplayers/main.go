@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"golangliveprojects/iplplayers/internal/db/mysql"
 	"golangliveprojects/iplplayers/internal/handlers"
 	"log"
 	"net/http"
@@ -11,25 +10,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
-
 func main() {
-	DB = mysql.InitDB()
-
-	// fmt.Println("DB:", DB)
-	// set context
-	// var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-	// defer cancel()
-
-	// // var playerData []response.PlayerResponse
-	// // queries.ListQuery(ctx, &playerData, DB)
-
-	// // fmt.Println("playerData:", playerData)
-	// // fmt.Printf("playerData%#v:", playerData)
-	router := handlers.SetupRouter(DB)
+	router := handlers.SetupRouter()
 	serverPort := ":8080"
 	listenAndServe(router, serverPort)
 }
