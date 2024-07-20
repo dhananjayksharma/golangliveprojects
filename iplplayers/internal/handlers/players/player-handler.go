@@ -21,6 +21,7 @@ func NewPlayerHandler(service services.PlayerService) PlayerHandler {
 	return &playerHandler{service: service}
 }
 
+// method
 func (srv *playerHandler) List(c *gin.Context) {
 	resp, err := srv.service.List(c)
 	if err != nil {
@@ -29,6 +30,7 @@ func (srv *playerHandler) List(c *gin.Context) {
 	}
 	util.JSON(c, resp, resp.Message)
 }
+
 func (srv *playerHandler) PlayerDetails(c *gin.Context) {
 	resp, err := srv.service.PlayerDetails(c)
 	if err != nil {
