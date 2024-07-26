@@ -10,7 +10,8 @@ import (
 type PlayerHandler interface {
 	List(c *gin.Context)
 	PlayerDetails(c *gin.Context)
-	ListMatches(c *gin.Context)
+	ListPlayerMatches(c *gin.Context)
+	AddPlayer(c *gin.Context)
 }
 
 type playerHandler struct {
@@ -39,8 +40,17 @@ func (srv *playerHandler) PlayerDetails(c *gin.Context) {
 	}
 	util.JSON(c, resp, resp.Message)
 }
-func (srv *playerHandler) ListMatches(c *gin.Context) {
-	resp, err := srv.service.ListMatches(c)
+func (srv *playerHandler) ListPlayerMatches(c *gin.Context) {
+	resp, err := srv.service.ListPlayerMatches(c)
+	if err != nil {
+		util.HandleError(c, err)
+		return
+	}
+	util.JSON(c, resp, resp.Message)
+}
+
+func (srv *playerHandler) AddPlayer(c *gin.Context) {
+	resp, err := srv.service.AddPlayer(c)
 	if err != nil {
 		util.HandleError(c, err)
 		return

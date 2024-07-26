@@ -20,8 +20,13 @@ func SetupRouter() *gin.Engine {
 	playerService := services.NewPlayerService(dbAccess)
 	playerHandler := players.NewPlayerHandler(playerService)
 
-	router.GET("/players", playerHandler.List)
-	router.GET("/players/:player_code", playerHandler.PlayerDetails)
-	router.GET("/players/:player_code/matches", playerHandler.ListMatches)
+	v1PlayerGroup := router.Group("/v1/players")
+	{
+		v1PlayerGroup.GET("/", playerHandler.List)
+		v1PlayerGroup.GET("/:player_code", playerHandler.PlayerDetails)
+		v1PlayerGroup.GET("/:player_code/matches", playerHandler.ListMatches)
+		v1PlayerGroup.POST("/", playerHandler.Add)
+	}
+
 	return router
 }

@@ -1,4 +1,4 @@
-export MS_USER_ENV="user"
-export MS_PASS_ENV="pass"
+export MS_USER_ENV="root"
+export MS_PASS_ENV="root#123PD"
 export MS_HOST_ENV="localhost"
 export MS_PORT_ENV="3360"
