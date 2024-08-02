@@ -20,6 +20,7 @@ type PersistentSQLDBStorer interface {
 	PlayerListQuery(ctx context.Context, playerResponse *[]responses.PlayerResponse) error
 	PlayerListQueryMatches(ctx context.Context, playerResponse *[]responses.PlayerResponse) error
 	PlayerListQueryPlayerDetails(ctx context.Context, playerResponse *[]responses.PlayerResponse, playerCode string) error
+	AddPlayerQuery(ctx context.Context, playerResponse *[]responses.PlayerResponse, requests.PlayerAddRequest) error
 
 	// // matches
 	// MatcheListQuery(ctx context.Context, playerResponse *[]responses.PlayerResponse) error
