@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+	"golangliveprojects/iplplayers/internal/entities"
 	"log"
 	"os"
 
@@ -21,5 +22,8 @@ func InitDB() *gorm.DB {
 		log.Fatal("Failed to connect to database:", err)
 	}
 	fmt.Println("DB:", DB)
+	// Auto Migrate
+	DB.AutoMigrate(&entities.Players{})
+	DB.AutoMigrate(&entities.Stadiums{})
 	return DB
 }

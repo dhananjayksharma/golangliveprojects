@@ -24,8 +24,17 @@ func SetupRouter() *gin.Engine {
 	{
 		v1PlayerGroup.GET("/", playerHandler.List)
 		v1PlayerGroup.GET("/:player_code", playerHandler.PlayerDetails)
-		v1PlayerGroup.GET("/:player_code/matches", playerHandler.ListMatches)
-		v1PlayerGroup.POST("/", playerHandler.Add)
+		v1PlayerGroup.GET("/:player_code/matches", playerHandler.ListPlayerMatches)
+		v1PlayerGroup.POST("/", playerHandler.AddPlayer)
+		v1PlayerGroup.PUT("/:player_code", playerHandler.UpdatePlayer)
+	}
+
+	v1MatcheGroup := router.Group("/v1/matches")
+	{
+		v1MatcheGroup.GET("/", playerHandler.List)
+		v1MatcheGroup.GET("/:player_code", playerHandler.PlayerDetails)
+		v1MatcheGroup.GET("/:player_code/matches", playerHandler.ListPlayerMatches)
+		v1MatcheGroup.POST("/", playerHandler.AddPlayer)
 	}
 
 	return router
