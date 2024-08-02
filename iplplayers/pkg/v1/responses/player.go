@@ -5,7 +5,7 @@ import (
 )
 
 type PlayerResponse struct {
-	ID             int       `json:"id"`
+	ID             int       `json:"-"`
 	PlayerCode     string    `json:"player_code"`
 	PlayerName     string    `json:"player_name"`
 	PlayerDob      string    `json:"player_dob"`
@@ -13,7 +13,7 @@ type PlayerResponse struct {
 	PlayerCategory string    `json:"player_category"`
 	Status         uint8     `json:"status"`
 	CreatedDt      time.Time `json:"created_dt"`
-	UpdatedDt      time.Time `json:"-"`
+	UpdatedDt      time.Time `json:"updated_dt"`
 }
 
 var _table_players = "players"
