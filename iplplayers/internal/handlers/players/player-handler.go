@@ -13,6 +13,7 @@ type PlayerHandler interface {
 	ListPlayerMatches(c *gin.Context)
 	AddPlayer(c *gin.Context)
 	UpdatePlayer(c *gin.Context)
+	PlayerActivate(c *gin.Context)
 }
 
 type playerHandler struct {
@@ -61,6 +62,15 @@ func (srv *playerHandler) AddPlayer(c *gin.Context) {
 
 func (srv *playerHandler) UpdatePlayer(c *gin.Context) {
 	resp, err := srv.service.UpdatePlayer(c)
+	if err != nil {
+		util.HandleError(c, err)
+		return
+	}
+	util.JSON(c, resp, resp.Message)
+}
+
+func (srv *playerHandler) PlayerActivate(c *gin.Context) {
+	resp, err := srv.service.PlayerActivate(c)
 	if err != nil {
 		util.HandleError(c, err)
 		return
