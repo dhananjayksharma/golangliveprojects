@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"golangliveprojects/iplplayers/internal/entities"
+	"golangliveprojects/iplplayers/internal/messages"
 	"golangliveprojects/iplplayers/internal/queries"
+	"golangliveprojects/iplplayers/internal/queriesredis"
 	"golangliveprojects/iplplayers/pkg/constants"
 	"golangliveprojects/iplplayers/pkg/util"
 	"golangliveprojects/iplplayers/pkg/v1/requests"
@@ -23,14 +25,16 @@ type PlayerService interface {
 	PlayerDetails(c *gin.Context) (responses.Response, error)
 	AddPlayer(c *gin.Context) (responses.Response, error)
 	UpdatePlayer(c *gin.Context) (responses.Response, error)
+	PlayerActivate(c *gin.Context) (responses.Response, error)
 }
 
 type playerService struct {
-	db queries.PersistentSQLDBStorer
+	db            queries.PersistentSQLDBStorer
+	redisDBAccess queriesredis.RedisCacheDBStorer
 }
 
-func NewPlayerService(dbaccess queries.PersistentSQLDBStorer) PlayerService {
-	return &playerService{db: dbaccess}
+func NewPlayerService(dbaccess queries.PersistentSQLDBStorer, redisDBAccess queriesredis.RedisCacheDBStorer) PlayerService {
+	return &playerService{db: dbaccess, redisDBAccess: redisDBAccess}
 }
 
 func (service playerService) List(c *gin.Context) (responses.Response, error) {
@@ -114,8 +118,22 @@ func (service playerService) AddPlayer(c *gin.Context) (responses.Response, erro
 		PlayerDob:      addPlayerRequest.PlayerDob,
 		PlayerCategory: addPlayerRequest.PlayerCategory,
 	})
+	activationCode, err := util.GenerateActivationCode()
+	if err != nil {
+		return responseData, err
+	}
+	err = service.redisDBAccess.SaveRegistrationDataByKey(ctx, addPlayer.PlayerCode, activationCode)
+	if err != nil {
+		return responseData, err
+	}
+	// send email
+
+	messages.SendEmail(activationCode)
+
+	// registrationKey, _ := service.redisDBAccess.GetRegistrationDataByKey(ctx, addPlayer.PlayerCode)
+
 	responseData.Data = newAccount
-	responseData.Message = "Player added successfully"
+	responseData.Message = fmt.Sprintf("Player added successfully activation key:%s", activationCode)
 	responseData.RecordSet = nil
 	return responseData, nil
 }
@@ -170,6 +188,70 @@ func (service playerService) UpdatePlayer(c *gin.Context) (responses.Response, e
 	})
 	responseData.Data = newAccount
 	responseData.Message = "Player updated successfully"
+	responseData.RecordSet = nil
+	return responseData, nil
+}
+
+func (service playerService) PlayerActivate(c *gin.Context) (responses.Response, error) {
+	var responseData responses.Response
+	playerCode := c.Param("player_code")
+	activateCode := c.Param("activate_code")
+	err := util.ValidatePlayerCode(playerCode)
+	if err != nil {
+		return responseData, &util.BadRequest{ErrMessage: err.Error()}
+	}
+	var existingData = entities.Players{}
+
+	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+
+	err = service.db.GetPlayerByPlayerCode(ctx, &existingData, playerCode)
+	if err != nil {
+		return responseData, &util.BadRequest{ErrMessage: err.Error()}
+	}
+	keyName := fmt.Sprintf("player:activation:code:%s", playerCode)
+	code, err := service.redisDBAccess.GetRegistrationDataByKey(ctx, keyName)
+	if err != nil {
+		return responseData, &util.BadRequest{ErrMessage: err.Error()}
+	}
+
+	// var updatePlayerRequest requests.PlayerUpdateRequest
+	// if err := c.BindJSON(&updatePlayerRequest); err != nil {
+	// 	log.Println("requests.updatePlayerRequest : ", err.Error())
+	// 	return responseData, &util.BadRequest{ErrMessage: err.Error()}
+	// }
+
+	// updatePlayerRequestObj := entities.PlayersUpdate{
+	// 	PlayerName:     updatePlayerRequest.PlayerName,
+	// 	Status:         updatePlayerRequest.PlayerStatus,
+	// 	PlayerCountry:  updatePlayerRequest.PlayerCountry,
+	// 	PlayerDob:      updatePlayerRequest.PlayerDob,
+	// 	PlayerCategory: updatePlayerRequest.PlayerCategory,
+	// }
+
+	// err = service.db.UpdatePlayerQuery(ctx, &updatePlayerRequestObj, playerCode)
+	// if err != nil {
+	// 	return responseData, err
+	// }
+
+	// var updatePlayer []responses.PlayerResponse
+	// newAccount := append(updatePlayer, responses.PlayerResponse{
+	// 	ID:             existingData.ID,
+	// 	PlayerName:     updatePlayerRequest.PlayerName,
+	// 	Status:         updatePlayerRequest.PlayerStatus,
+	// 	PlayerCode:     playerCode,
+	// 	PlayerCountry:  updatePlayerRequest.PlayerCountry,
+	// 	PlayerDob:      updatePlayerRequest.PlayerDob,
+	// 	PlayerCategory: updatePlayerRequest.PlayerCategory,
+	// 	CreatedDt:      existingData.CreatedDt,
+	// 	UpdatedDt:      existingData.UpdatedDt,
+	// })
+	status := "failed"
+	if code == activateCode {
+		status = "Player activate successfully"
+	}
+	responseData.Data = nil
+	responseData.Message = status
 	responseData.RecordSet = nil
 	return responseData, nil
 }
