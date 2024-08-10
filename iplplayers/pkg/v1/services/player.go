@@ -112,7 +112,7 @@ func (service playerService) AddPlayer(c *gin.Context) (responses.Response, erro
 	var newPlayer []responses.PlayerResponse
 	newAccount := append(newPlayer, responses.PlayerResponse{
 		PlayerName:     addPlayerRequest.PlayerName,
-		Status:         constants.DB_STATUS_ACTIVE,
+		Status:         constants.DB_STATUS_REGISTERED,
 		PlayerCode:     addPlayer.PlayerCode,
 		PlayerCountry:  addPlayerRequest.PlayerCountry,
 		PlayerDob:      addPlayerRequest.PlayerDob,
@@ -122,7 +122,8 @@ func (service playerService) AddPlayer(c *gin.Context) (responses.Response, erro
 	if err != nil {
 		return responseData, err
 	}
-	err = service.redisDBAccess.SaveRegistrationDataByKey(ctx, addPlayer.PlayerCode, activationCode)
+	keyName := util.GetPlayerActicationKey(addPlayer.PlayerCode)
+	err = service.redisDBAccess.SaveRegistrationDataByKey(ctx, keyName, activationCode)
 	if err != nil {
 		return responseData, err
 	}
@@ -209,46 +210,27 @@ func (service playerService) PlayerActivate(c *gin.Context) (responses.Response,
 	if err != nil {
 		return responseData, &util.BadRequest{ErrMessage: err.Error()}
 	}
-	keyName := fmt.Sprintf("player:activation:code:%s", playerCode)
+	keyName := util.GetPlayerActicationKey(existingData.PlayerCode)
 	code, err := service.redisDBAccess.GetRegistrationDataByKey(ctx, keyName)
 	if err != nil {
 		return responseData, &util.BadRequest{ErrMessage: err.Error()}
 	}
 
-	// var updatePlayerRequest requests.PlayerUpdateRequest
-	// if err := c.BindJSON(&updatePlayerRequest); err != nil {
-	// 	log.Println("requests.updatePlayerRequest : ", err.Error())
-	// 	return responseData, &util.BadRequest{ErrMessage: err.Error()}
-	// }
+	updatePlayerRequestObj := entities.PlayersUpdate{
+		Status: constants.DB_STATUS_ACTIVE,
+	}
 
-	// updatePlayerRequestObj := entities.PlayersUpdate{
-	// 	PlayerName:     updatePlayerRequest.PlayerName,
-	// 	Status:         updatePlayerRequest.PlayerStatus,
-	// 	PlayerCountry:  updatePlayerRequest.PlayerCountry,
-	// 	PlayerDob:      updatePlayerRequest.PlayerDob,
-	// 	PlayerCategory: updatePlayerRequest.PlayerCategory,
-	// }
-
-	// err = service.db.UpdatePlayerQuery(ctx, &updatePlayerRequestObj, playerCode)
-	// if err != nil {
-	// 	return responseData, err
-	// }
-
-	// var updatePlayer []responses.PlayerResponse
-	// newAccount := append(updatePlayer, responses.PlayerResponse{
-	// 	ID:             existingData.ID,
-	// 	PlayerName:     updatePlayerRequest.PlayerName,
-	// 	Status:         updatePlayerRequest.PlayerStatus,
-	// 	PlayerCode:     playerCode,
-	// 	PlayerCountry:  updatePlayerRequest.PlayerCountry,
-	// 	PlayerDob:      updatePlayerRequest.PlayerDob,
-	// 	PlayerCategory: updatePlayerRequest.PlayerCategory,
-	// 	CreatedDt:      existingData.CreatedDt,
-	// 	UpdatedDt:      existingData.UpdatedDt,
-	// })
 	status := "failed"
 	if code == activateCode {
 		status = "Player activate successfully"
+		err := service.redisDBAccess.DeleteRegistrationDataByKey(ctx, keyName)
+		if err != nil {
+			return responseData, &util.BadRequest{ErrMessage: err.Error()}
+		}
+		err = service.db.UpdatePlayerQuery(ctx, &updatePlayerRequestObj, playerCode)
+		if err != nil {
+			return responseData, err
+		}
 	}
 	responseData.Data = nil
 	responseData.Message = status
