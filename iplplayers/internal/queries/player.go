@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"golangliveprojects/iplplayers/internal/entities"
+	"golangliveprojects/iplplayers/pkg/customerrors"
 	"golangliveprojects/iplplayers/pkg/util"
 	"golangliveprojects/iplplayers/pkg/v1/responses"
 	"strings"
@@ -73,6 +74,8 @@ func (ms *persistentSQLDBStore) UpdatePlayerQuery(ctx context.Context, updateReq
 		if strings.Contains(err.Error(), "consts.ErrDuplicateEntry") {
 			_errMsg := fmt.Sprintf("consts.ErrAccountAlreadyExists: %s", playerCode)
 			return &util.BadRequest{ErrMessage: _errMsg}
+		} else if strings.Contains(err.Error(), customerrors.ERR_MYSQL_DB_UNKNOWN_COLUMN) {
+			return &util.InternalServer{ErrMessage: customerrors.ERR_INTERNAL_SERVER_ERROR}
 		} else {
 			return &util.InternalServer{ErrMessage: err.Error()}
 		}

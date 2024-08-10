@@ -17,4 +17,5 @@ func NewRedisCacheDBStore(dbconn *redis.Client) RedisCacheDBStorer {
 type RedisCacheDBStorer interface {
 	GetRegistrationDataByKey(ctx context.Context, key string) (string, error)
 	SaveRegistrationDataByKey(ctx context.Context, key string, activateCode string) error
+	DeleteRegistrationDataByKey(ctx context.Context, key string) error
 }

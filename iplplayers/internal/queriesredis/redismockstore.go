@@ -14,6 +14,11 @@ func (ms *MockRedisCacheDB) GetRegistrationDataByKey(ctx context.Context, key st
 	return "", nil
 }
 
+// DeleteRegistrationDataByKey
+func (ms *MockRedisCacheDB) DeleteRegistrationDataByKey(ctx context.Context, key string) error {
+	return nil
+}
+
 // SaveRegistrationDataByKey
 func (ms *MockRedisCacheDB) SaveRegistrationDataByKey(ctx context.Context, key string, activateCode string) error {
 	return nil
