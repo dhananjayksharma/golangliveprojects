@@ -11,7 +11,9 @@ type PlayerResponse struct {
 	PlayerDob      string    `json:"player_dob"`
 	PlayerCountry  string    `json:"player_country"`
 	PlayerCategory string    `json:"player_category"`
-	Status         uint8     `json:"status"`
+	Status         uint8     `json:"-"`
+	StatusOut      string    `json:"status"`
+	Age            int8      `json:"age"`
 	CreatedDt      time.Time `json:"created_dt"`
 	UpdatedDt      time.Time `json:"updated_dt"`
 }

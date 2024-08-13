@@ -11,7 +11,9 @@ import (
 	"golangliveprojects/iplplayers/pkg/util"
 	"golangliveprojects/iplplayers/pkg/v1/requests"
 	"golangliveprojects/iplplayers/pkg/v1/responses"
+	"golangliveprojects/iplutils/calculates"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -47,10 +49,30 @@ func (service playerService) List(c *gin.Context) (responses.Response, error) {
 
 	var playerData []responses.PlayerResponse
 	service.db.PlayerListQuery(ctx, &playerData)
-	responseData.Data = playerData
+	showPlayerData := showPlayerList(playerData)
+	responseData.Data = showPlayerData
 	responseData.Message = "Player list"
 	responseData.RecordSet = nil
 	return responseData, nil
+}
+
+func dateMySQLToDDMMYYYY(date string) string {
+	dateList := strings.Split(date, "-")
+	dateDDMMYYYY := fmt.Sprintf("%s-%s-%s", dateList[2], dateList[1], dateList[0])
+	return dateDDMMYYYY
+}
+
+// without pointer
+func showPlayerList(playerData []responses.PlayerResponse) []responses.PlayerResponse {
+	var showPlayerData = []responses.PlayerResponse{}
+	for _, raw := range playerData {
+		rawBirthDate := dateMySQLToDDMMYYYY(raw.PlayerDob)
+		age, _ := calculates.AgeCaculate(rawBirthDate)
+		status := constants.StatusMap[raw.Status]
+		data := responses.PlayerResponse{ID: raw.ID, PlayerCode: raw.PlayerCode, Age: age, PlayerName: raw.PlayerName, PlayerDob: raw.PlayerDob, PlayerCountry: raw.PlayerCountry, PlayerCategory: raw.PlayerCategory, StatusOut: status}
+		showPlayerData = append(showPlayerData, data)
+	}
+	return showPlayerData
 }
 
 func (service playerService) PlayerDetails(c *gin.Context) (responses.Response, error) {
