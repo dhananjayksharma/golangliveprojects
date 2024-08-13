@@ -2,3 +2,8 @@ export MS_USER_ENV="root"
 export MS_PASS_ENV="root#123PD"
 export MS_HOST_ENV="localhost"
 export MS_PORT_ENV="3360"
+
+
+
+
+//player:activation:code:indplfd3012e2-cee1-468f-81f3-8e6db91fb7a0
